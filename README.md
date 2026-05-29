@@ -1,9 +1,8 @@
 ## extension-androidtools
-
 ![](https://img.shields.io/github/repo-size/LimeExtensions/extension-androidtools) ![](https://badgen.net/github/open-issues/LimeExtensions/extension-androidtools) ![](https://badgen.net/badge/license/MIT/green)
-
+---
 A Haxe/[Lime](https://lime.openfl.org) extension that incorporates Java functions through [JNI](https://en.m.wikipedia.org/wiki/Java_Native_Interface).
-
+---
 ### Installation
 
 You can install it through `Haxelib`
