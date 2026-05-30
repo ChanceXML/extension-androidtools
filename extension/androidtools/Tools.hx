@@ -207,20 +207,19 @@ class Tools
 		}
 	}
 
-	public static function pickFile(onComplete:String->Void):Void
-	{
-		try {
-			if (_pickFileJNI == null)
-				_pickFileJNI = JNICache.createStaticMethod('org/haxe/extension/Tools', 'pickFile', '(Lorg/haxe/lime/HaxeObject;)V');
-
-			if (_pickFileJNI != null)
-				_pickFileJNI(new FilePickerCallback(onComplete));
-		} catch (e:Dynamic) {
-			trace("Error in pickFile: " + e);
-			if (onComplete != null)
-				onComplete("");
-		}
-	}
+	public static function pickFile(extensions:String, onComplete:String->Void):Void
+    {
+    	try {
+    		if (_pickFileJNI == null)
+	    		_pickFileJNI = JNICache.createStaticMethod('org/haxe/extension/Tools', 'pickFile', '(Ljava/lang/String;Lorg/haxe/lime/HaxeObject;)V');
+ 
+    		if (_pickFileJNI != null)
+		    	_pickFileJNI(extensions, new FilePickerCallback(onComplete));
+    	} catch (e:Dynamic) {
+    		if (onComplete != null)
+		    	onComplete("");
+    	}
+    }
 }
 
 @:noCompletion
