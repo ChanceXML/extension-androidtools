@@ -540,15 +540,35 @@ public class Tools extends Extension
 		return AudioManager.AUDIOFOCUS_REQUEST_FAILED;
 	}
 
-	public static void pickFile(final HaxeObject callback)
-	{
-		filePickerCallback = callback;
-		Intent intent = new Intent(Intent.ACTION_GET_CONTENT);
-		intent.setType("*/*");
-		intent.addCategory(Intent.CATEGORY_OPENABLE);
-		mainActivity.startActivityForResult(intent, 4321);
-	}
+	public static void pickFile(String extensions, final HaxeObject callback)
+    {
+      	filePickerCallback = callback;
+    	Intent intent = new Intent(Intent.ACTION_GET_CONTENT);
+    	intent.addCategory(Intent.CATEGORY_OPENABLE);
 
+	    if (extensions != null && !extensions.isEmpty()) 
+    	{
+		    intent.setType("*/*");
+		    String[] exts = extensions.split("[,/]");
+		    String[] mimes = new String[exts.length];
+		
+		    for (int i = 0; i < exts.length; i++) 
+	    	{
+	    		String ext = exts[i].trim().replace(".", "");
+		    	String mime = android.webkit.MimeTypeMap.getSingleton().getMimeTypeFromExtension(ext);
+		    	mimes[i] = mime != null ? mime : "*/*";
+	    	}
+		
+	    	intent.putExtra(Intent.EXTRA_MIME_TYPES, mimes);
+  	    } 
+    	else 
+       	{
+		    intent.setType("*/*");
+	    }
+
+    	mainActivity.startActivityForResult(intent, 4321);
+    }
+	
 	@Override
 	public boolean onActivityResult(int requestCode, int resultCode, Intent data)
 	{
