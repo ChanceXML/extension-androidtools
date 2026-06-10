@@ -43,6 +43,8 @@ import org.haxe.extension.Extension;
 import org.haxe.lime.HaxeObject;
 import org.json.JSONArray;
 import org.json.JSONObject;
+import java.io.FileInputStream;
+import java.io.OutputStream;
 
 public class Tools extends Extension
 {
@@ -50,6 +52,8 @@ public class Tools extends Extension
 
 	public static HaxeObject cbObject;
 	private static HaxeObject filePickerCallback = null;
+	private static HaxeObject fileSaverCallback = null;
+	private static String pendingSaveFilePath = null;
 
 	public static void initCallBack(final HaxeObject cbObject)
 	{
@@ -568,6 +572,20 @@ public class Tools extends Extension
 
     	mainActivity.startActivityForResult(intent, 4321);
     }
+
+	public static void saveFile(String sourceFilePath, String suggestedName, String mimeType, final HaxeObject callback)
+	{
+		pendingSaveFilePath = sourceFilePath;
+		fileSaverCallback = callback;
+
+		Intent intent = new Intent(Intent.ACTION_CREATE_DOCUMENT);
+		intent.addCategory(Intent.CATEGORY_OPENABLE);
+		intent.setType(mimeType != null && !mimeType.isEmpty() ? mimeType : "*/*");
+		intent.putExtra(Intent.EXTRA_TITLE, suggestedName);
+
+		mainActivity.startActivityForResult(intent, 4322); 
+	}
+	
 	
 	@Override
 	public boolean onActivityResult(int requestCode, int resultCode, Intent data)
@@ -618,6 +636,51 @@ public class Tools extends Extension
 			{
 				filePickerCallback.call("onFilePicked", new Object[] { resultPath });
 				filePickerCallback = null;
+			}
+			return true;
+		}
+
+		if (requestCode == 4322)
+		{
+			boolean success = false;
+			if (resultCode == Activity.RESULT_OK && data != null)
+			{
+				Uri uri = data.getData();
+				if (uri != null && pendingSaveFilePath != null)
+				{
+					try
+					{
+						InputStream inputStream = new FileInputStream(new File(pendingSaveFilePath));
+						OutputStream outputStream = mainContext.getContentResolver().openOutputStream(uri);
+
+						byte[] buffer = new byte[1024];
+						int length;
+						while ((length = inputStream.read(buffer)) > 0)
+						{
+							outputStream.write(buffer, 0, length);
+						}
+
+						outputStream.close();
+						inputStream.close();
+						success = true;
+					}
+					catch (Exception e)
+					{
+						Log.e(LOG_TAG, e.toString());
+					}
+				}
+			}
+
+			if (pendingSaveFilePath != null)
+			{
+				new File(pendingSaveFilePath).delete();
+				pendingSaveFilePath = null;
+			}
+
+			if (fileSaverCallback != null)
+			{
+				fileSaverCallback.call("onFileSaved", new Object[] { success });
+				fileSaverCallback = null;
 			}
 			return true;
 		}
