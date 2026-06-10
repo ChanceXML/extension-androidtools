@@ -26,6 +26,8 @@ class Tools
 	private static var _isChromebookJNI:Null<Dynamic>;
 	private static var _isDeXModeJNI:Null<Dynamic>;
 	private static var _pickFileJNI:Null<Dynamic>;
+	private static var _saveFileJNI:Null<Dynamic>;
+	
 
 	public static function enableAppSecure():Void
 	{
@@ -220,6 +222,20 @@ class Tools
 		    	onComplete("");
     	}
     }
+
+	public static function saveFile(sourceFilePath:String, suggestedName:String, mimeType:String, onComplete:Bool->Void):Void
+	{
+		try {
+			if (_saveFileJNI == null)
+				_saveFileJNI = JNICache.createStaticMethod('org/haxe/extension/Tools', 'saveFile', '(Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Lorg/haxe/lime/HaxeObject;)V');
+
+			if (_saveFileJNI != null)
+				_saveFileJNI(sourceFilePath, suggestedName, mimeType, new FileSaverCallback(onComplete));
+		} catch (e:Dynamic) {
+			if (onComplete != null)
+				onComplete(false);
+		}
+	}
 }
 
 @:noCompletion
@@ -269,5 +285,26 @@ private class FilePickerCallback #if (lime >= "8.0.0") implements JNISafety #end
 	{
 		if (onPicked != null)
 			onPicked(path);
+	}
+}
+
+@:noCompletion
+private class FileSaverCallback #if (lime >= "8.0.0") implements JNISafety #end
+{
+	private var onSaved:Bool->Void;
+
+	public function new(callback:Bool->Void):Void
+	{
+		this.onSaved = callback;
+	}
+
+	@:keep
+	#if (lime >= "8.0.0")
+	@:runOnMainThread
+	#end
+	public function onFileSaved(success:Bool):Void
+	{
+		if (onSaved != null)
+			onSaved(success);
 	}
 }
